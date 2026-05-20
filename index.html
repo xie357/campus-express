@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>校园代取快递</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 顶部导航 -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="nav-icon">📦</span>
+      <span class="nav-title">校园代取快递</span>
+    </div>
+    <div class="nav-user" id="navUser">
+      <span id="currentUser">未登录</span>
+      <button class="btn btn-sm btn-outline" id="loginBtn" onclick="showLoginModal()">登录</button>
+    </div>
+  </nav>
+
+  <!-- Tab 切换 -->
+  <div class="tab-bar">
+    <button class="tab active" data-tab="post" onclick="switchTab('post')">📝 发布代取</button>
+    <button class="tab" data-tab="list" onclick="switchTab('list')">📋 待接订单</button>
+    <button class="tab" data-tab="myorders" onclick="switchTab('myorders')">📦 我的订单</button>
+  </div>
+
+  <!-- ========== 发布代取 ========== -->
+  <section id="tab-post" class="tab-content active">
+    <div class="card form-card">
+      <h2 class="card-title">发布代取快递</h2>
+      <form id="postForm" onsubmit="return postOrder(event)">
+        <div class="form-group">
+          <label>快递公司</label>
+          <select id="expressCompany" required>
+            <option value="">请选择</option>
+            <option>顺丰速运</option>
+            <option>中通快递</option>
+            <option>圆通速递</option>
+            <option>韵达快递</option>
+            <option>申通快递</option>
+            <option>极兔速递</option>
+            <option>京东快递</option>
+            <option>邮政EMS</option>
+            <option>百世快递</option>
+            <option>菜鸟裹裹</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>取件码 / 快递单号</label>
+          <input type="text" id="pickupCode" placeholder="如：1-2-3456 或 SF1234567890" required>
+        </div>
+        <div class="form-group">
+          <label>快递大小</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="size" value="小件" checked> 小件（信件/小包裹）</label>
+            <label class="radio-label"><input type="radio" name="size" value="中件"> 中件（鞋盒大小）</label>
+            <label class="radio-label"><input type="radio" name="size" value="大件"> 大件（行李箱大小）</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>取件地点</label>
+          <select id="pickupLocation" required>
+            <option value="">请选择</option>
+            <option>菜鸟驿站（南门）</option>
+            <option>快递柜（北门）</option>
+            <option>顺丰站点（东门）</option>
+            <option>京东快递点（西门）</option>
+            <option>邮政所（行政楼旁）</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>送达地址</label>
+          <input type="text" id="deliverAddress" placeholder="如：5号楼 302 室" required>
+        </div>
+        <div class="form-group">
+          <label>悬赏金额（元）</label>
+          <input type="number" id="reward" min="1" max="50" step="0.5" placeholder="2 ~ 20" required>
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea id="remark" rows="2" placeholder="如：易碎品请小心 / 放门口即可"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">发布订单</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ========== 待接订单 ========== -->
+  <section id="tab-list" class="tab-content">
+    <div class="filter-bar">
+      <select id="filterLocation" onchange="renderOrderList()">
+        <option value="">全部地点</option>
+        <option>菜鸟驿站（南门）</option>
+        <option>快递柜（北门）</option>
+        <option>顺丰站点（东门）</option>
+        <option>京东快递点（西门）</option>
+        <option>邮政所（行政楼旁）</option>
+      </select>
+      <select id="filterSize" onchange="renderOrderList()">
+        <option value="">全部大小</option>
+        <option>小件</option>
+        <option>中件</option>
+        <option>大件</option>
+      </select>
+      <select id="filterSort" onchange="renderOrderList()">
+        <option value="newest">最新发布</option>
+        <option value="reward-high">悬赏最高</option>
+        <option value="reward-low">悬赏最低</option>
+      </select>
+    </div>
+    <div id="orderList" class="order-list"></div>
+    <div id="emptyList" class="empty-state" style="display:none;">
+      <div class="empty-icon">📭</div>
+      <p>暂无可接订单</p>
+    </div>
+  </section>
+
+  <!-- ========== 我的订单 ========== -->
+  <section id="tab-myorders" class="tab-content">
+    <div class="sub-tab-bar">
+      <button class="sub-tab active" data-sub="published" onclick="switchSubTab('published')">我发布的</button>
+      <button class="sub-tab" data-sub="accepted" onclick="switchSubTab('accepted')">我接的单</button>
+    </div>
+    <div id="myOrderList" class="order-list"></div>
+    <div id="emptyMyOrder" class="empty-state" style="display:none;">
+      <div class="empty-icon">📭</div>
+      <p>暂无相关订单</p>
+    </div>
+  </section>
+
+  <!-- ========== 登录弹窗 ========== -->
+  <div id="loginModal" class="modal" style="display:none;">
+    <div class="modal-backdrop" onclick="hideLoginModal()"></div>
+    <div class="modal-content">
+      <h2>用户登录</h2>
+      <form onsubmit="return doLogin(event)">
+        <div class="form-group">
+          <label>昵称</label>
+          <input type="text" id="loginName" placeholder="输入你的昵称" required>
+        </div>
+        <div class="form-group">
+          <label>手机号</label>
+          <input type="tel" id="loginPhone" placeholder="输入手机号" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">登录</button>
+      </form>
+      <button class="modal-close" onclick="hideLoginModal()">×</button>
+    </div>
+  </div>
+
+  <!-- ========== 订单详情弹窗 ========== -->
+  <div id="detailModal" class="modal" style="display:none;">
+    <div class="modal-backdrop" onclick="hideDetailModal()"></div>
+    <div class="modal-content modal-lg">
+      <div id="detailBody"></div>
+      <button class="modal-close" onclick="hideDetailModal()">×</button>
+    </div>
+  </div>
+
+  <footer class="footer">校园代取快递 &copy; 2026 · 让快递不再排队</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
